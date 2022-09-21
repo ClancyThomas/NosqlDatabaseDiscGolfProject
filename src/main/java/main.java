@@ -1,6 +1,12 @@
+import oracle.nosql.driver.NoSQLHandle;
 
-public class main {
+public class Main {
     public static void main(String[] args) {
+        CloudConnection cloudConnection = new CloudConnection();
 
+        try (NoSQLHandle handle = cloudConnection.getHandle()) {
+
+        }
     }
 }
+
