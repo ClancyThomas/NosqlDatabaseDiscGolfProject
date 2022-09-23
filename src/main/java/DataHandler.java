@@ -13,7 +13,7 @@ public class DataHandler {
         databaseWorker = new CloudActions(handle);
     }
 
-    public void uploadCsvFileToDatabase(String fileName, Integer primaryKey) {
+    public void uploadCsvFileToDatabase(String fileName, Integer primaryKey, String week, String course) {
         String csvLine = "";
 
         try {
@@ -25,7 +25,7 @@ public class DataHandler {
                 String[] playerData = csvLine.split(",");
 
                 if(!playerData[1].contains("DNF")) { // Don't use the data if the player did not finish the round (DNF)
-                    String[] player = prepareData(playerData,"1", "Nature Park");
+                    String[] player = prepareDataForUpload(playerData, week, course);
                     uploadToDatabase(player, count);
                     count++;
                 }
@@ -36,7 +36,7 @@ public class DataHandler {
         }
     }
 
-    public String[] prepareData(String[] data, String week, String course) {
+    public String[] prepareDataForUpload(String[] data, String week, String course) {
         String[] player = new String[6];
 
         String fullName = data[2];
