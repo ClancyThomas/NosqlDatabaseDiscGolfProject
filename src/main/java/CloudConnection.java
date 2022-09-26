@@ -11,7 +11,9 @@ public class CloudConnection {
     private String endpoint = "us-phoenix-1"; // [INSERT] Add your region here
     private String compartment = "practice";  // [INSERT] Specify which compartment to access
 
-    // Function that gets the handle for the cloud database
+    //
+    // Description: Gets the handle for the cloud database which is used for the interacting with database
+    //
     public NoSQLHandle getHandle() {
 
         NoSQLHandleConfig config = new NoSQLHandleConfig(endpoint);
@@ -23,7 +25,10 @@ public class CloudConnection {
 
     }
 
-    // Function that configures the authorization for the cloud database
+    //
+    // Description: Configures the authorization for the cloud database
+    // Parameters: 1. NoSQLHandleConfig - Created as part of the connection process
+    //
     private void configureAuth(NoSQLHandleConfig config) {
         try {
             //

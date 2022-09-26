@@ -12,10 +12,25 @@ public class CloudActions {
     NoSQLHandle myHandle;
     private String tableName = "TetonRiverWeeklyStats"; // [INSERT] Specify table name here
 
+    //
+    // Description: Constructor for the CloudActions class
+    // Parameters: 1. NoSQLHandle
+    //
     public CloudActions(NoSQLHandle handle) {
         myHandle = handle;
     }
 
+    //
+    // Description: Adds a row to the cloud database through a 'put' request - Format corresponds to the table chosen
+    // Parameters: 1. Primary Key
+    //             2. First name of the player
+    //             3. Last name of the player
+    //             4. Score Relative to Par
+    //             5. Total Score
+    //             6. Course
+    //             7. Week - Integer for the week number
+    //             8. Year
+    //
     public void addRow(String key, String firstName, String lastName, Integer scoreRelativeToPar,
                        Integer scoreTotal, String course, Integer week, Integer year) {
         MapValue row = new MapValue ()
@@ -39,6 +54,10 @@ public class CloudActions {
         System.out.println("Added row. Result: " + putRes);
     }
 
+    //
+    // Description: Queries against the cloud database using a query request
+    // Parameters: 1. A string that contains a query statement in Oracle NoSQL format
+    //
     public ArrayList<MapValue> query(String sqlQuery) {
         QueryRequest queryRequest = new QueryRequest()
                 .setStatement(sqlQuery);
