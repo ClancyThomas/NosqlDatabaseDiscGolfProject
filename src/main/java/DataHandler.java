@@ -1,17 +1,32 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Map;
 
 import oracle.nosql.driver.NoSQLHandle;
+import oracle.nosql.driver.values.FieldValue;
 import oracle.nosql.driver.values.MapValue;
 
 public class DataHandler {
 
     CloudActions databaseWorker;
 
+    //
+    // Description: Constructor for the DataHandler class
+    // Parameters: 1. NoSQLHandle
+    //
     public DataHandler(NoSQLHandle handle) {
         databaseWorker = new CloudActions(handle);
     }
 
+    //
+    // Description: Processes and uploads a .csv file to the cloud database
+    // Parameters: 1. A file name or file path
+    //             2. Letter which will be used for the primary key - Careful not to overwrite
+    //             3. Course name corresponding to the .csv file
+    //             4. Week - Integer for the week number
+    //             5. Year
+    //             6. Format of play (singles, doubles, etc.)
+    //
     public void uploadCsvFileToDatabase(String fileName, String letter, String course, String week, String year, String format) {
         String csvLine = "";
 
@@ -24,8 +39,8 @@ public class DataHandler {
                 String[] playerData = csvLine.split(",");
 
                 if(!playerData[1].contains("DNF")) { // Don't use the data if the player did not finish the round (DNF)
-                    String[] player = prepareDataForUpload(playerData, course, week, year, format);
-                    uploadToDatabase(player, letter+count);
+                    String[] player = preparePlayerDataForUpload(playerData, course, week, year, format);
+                    uploadPlayerToDatabase(player, letter+count);
                     count++;
                 }
             }
@@ -35,7 +50,15 @@ public class DataHandler {
         }
     }
 
-    public String[] prepareDataForUpload(String[] data, String course, String week, String year, String format) {
+    //
+    // Description: Prepares the array of data that represents the player to be uploaded to the database
+    // Parameters: 1. Array of player data that comes from a .csv file
+    //             2. Course name corresponding to the .csv file
+    //             3. Week - Integer for the week number
+    //             4. Year
+    //             5. Format of play (singles, doubles, etc.)
+    //
+    public String[] preparePlayerDataForUpload(String[] data, String course, String week, String year, String format) {
         String[] player = new String[8];
 
         String fullName = data[2];
@@ -57,7 +80,12 @@ public class DataHandler {
         return player;
     }
 
-    public void uploadToDatabase(String[] player, String key) {
+    //
+    // Description: Uploads the player to the database
+    // Parameters: 1. Array of all the player data
+    //             2. String that will be used as a primary key for that row of data
+    //
+    public void uploadPlayerToDatabase(String[] player, String key) {
         int scoreRelativeToPar = 0;
         int scoreTotal = 0;
         int week = 0;
@@ -77,15 +105,35 @@ public class DataHandler {
 
     }
 
-    public void writeQueryToConsole(ArrayList<MapValue> results) {
-        System.out.println("Query Result:");
+    //
+    // Description: Writes the query results to the console
+    // Parameters: 1. ArrayList<MapValue> Data type returned by a query to the Oracle NoSQL database
+    //             2. Results Description will describe the data that was queried
+    //
+    public void writeQueryToConsole(ArrayList<MapValue> results, String resultsDescription) {
+        System.out.print(resultsDescription);
         for (MapValue res : results) {
-            System.out.println("\t" + res);
+            System.out.println();
+            Map<String, FieldValue> map = res.getMap();
+            map.forEach((key, value)-> System.out.print(value+","));
         }
     }
 
-    public void writeQueryToTextFile(ArrayList<MapValue> results) {
-        String fileName = "results.txt";
+    //
+    // Description: Allows writeQueryToConsole but without a results description parameter
+    // Parameters: 1. ArrayList<MapValue> Data type returned by a query to the Oracle NoSQL database
+    //
+    public void writeQueryToConsole(ArrayList<MapValue> results) {
+        writeQueryToConsole(results, "Query Results: ");
+    }
+
+    //
+    // Description: Writes the query results to a .csv file in csv format
+    // Parameters: 1. ArrayList<MapValue> Data type returned by a query to the Oracle NoSQL database
+    //             2. Results Description will describe the data that was queried - Header row of .csv file
+    //
+    public void writeQueryToCsvFile(ArrayList<MapValue> results, String resultsDescription) {
+        String fileName = "results.csv";
 
         try {
             File printFile = new File(fileName);
@@ -101,9 +149,18 @@ public class DataHandler {
 
         try {
             FileWriter fileWriter = new FileWriter(fileName);
-            fileWriter.write("Query Result: ");
+            fileWriter.write(resultsDescription);
             for (MapValue res : results) {
-                fileWriter.write("\n" + res);
+                fileWriter.write("\n");
+                Map<String, FieldValue> map = res.getMap();
+                map.forEach((key, value)-> {
+                    try {
+                        fileWriter.write(value+",");
+                    } catch (IOException e) {
+                        System.out.println("An error occurred trying to write to the file!");
+                        e.printStackTrace();
+                    }
+                });
             }
             fileWriter.close();
             System.out.println("Finished a successful write to the text file.");
@@ -113,10 +170,23 @@ public class DataHandler {
         }
     }
 
-    // Currently unused, but this function can be used to quickly upload a lot of files - [INSERT]
+
+    //
+    // Description: Allows writeQueryToCsvFile but without a results description parameter
+    // Parameters: 1. ArrayList<MapValue> Data type returned by a query to the Oracle NoSQL database
+    //
+    public void writeQueryToCSVFile(ArrayList<MapValue> results) {
+        writeQueryToCsvFile(results, "Query Result: ");
+    }
+
+    //
+    // Description: Currently unused, but can be used to quickly upload a lot of files
+    //      Be careful that the primary key (letter) will not be overriding previous entries - Check for this
+    // Parameters: 1. List of file names (file paths) in string format
+    //
     public void uploadListOfCsvFiles(String[] fileNames) {
         for(int i = 0; i<fileNames.length; i++) {
-            uploadCsvFileToDatabase(fileNames[i], i+"a", "Course Name", String.valueOf(i+1), "Year", "Format");
+            uploadCsvFileToDatabase(fileNames[i], "a"+i, "Course Name", String.valueOf(i+1), "Year", "Format");
         }
     }
 }
