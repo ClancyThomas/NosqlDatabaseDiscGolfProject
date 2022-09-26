@@ -5,6 +5,9 @@ import oracle.nosql.driver.ops.QueryRequest;
 import oracle.nosql.driver.ops.QueryResult;
 import oracle.nosql.driver.values.MapValue;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class CloudActions {
@@ -36,29 +39,60 @@ public class CloudActions {
 
         PutResult putRes = myHandle.put(putRequest);
 
-        System.out.println("Put row, result " + putRes);
+        System.out.println("Added row. Result: " + putRes);
     }
 
-    public void query(String sqlQuery, Boolean printToConsole) {
+    public void query(String sqlQuery, Boolean printToTextFile) {
         QueryRequest queryRequest = new QueryRequest()
                 .setStatement(sqlQuery);
         ArrayList<MapValue> results = new ArrayList<MapValue>();
 
-        // Use a do while loop because the results may not all come back at once
+        // Use a do-while loop because the results may not all come back at once on each query
         do {
             QueryResult queryResult = myHandle.query(queryRequest);
             results.addAll(queryResult.getResults());
         } while (!queryRequest.isDone());
-        if (printToConsole) {
-            printQueryResult(results);
+        if (printToTextFile) {
+            printQueryToTextFile(results);
+        } else {
+            printQueryToConsole(results);
         }
 
     }
 
-    public void printQueryResult(ArrayList<MapValue> results) {
+    public void printQueryToConsole(ArrayList<MapValue> results) {
         System.out.println("Query Result:");
         for (MapValue res : results) {
             System.out.println("\t" + res);
+        }
+    }
+
+    public void printQueryToTextFile(ArrayList<MapValue> results) {
+        String fileName = "results.txt";
+
+        try {
+            File printFile = new File(fileName);
+            if (printFile.createNewFile()) {
+                System.out.println("New file created "+printFile.getName());
+            } else {
+                System.out.println("This file already exists.");
+            }
+        } catch (IOException e) {
+            System.out.println("Error creating a file!");
+            e.printStackTrace();
+        }
+
+        try {
+            FileWriter fileWriter = new FileWriter(fileName);
+            fileWriter.write("Query Result: ");
+            for (MapValue res : results) {
+                fileWriter.write("\n" + res);
+            }
+            fileWriter.close();
+            System.out.println("Finished a successful write to the text file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred trying to write to the file!");
+            e.printStackTrace();
         }
     }
 }
