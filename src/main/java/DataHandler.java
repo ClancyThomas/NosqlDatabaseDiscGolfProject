@@ -1,8 +1,8 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 
 import oracle.nosql.driver.NoSQLHandle;
+import oracle.nosql.driver.values.MapValue;
 
 public class DataHandler {
 
@@ -75,6 +75,42 @@ public class DataHandler {
 
         databaseWorker.addRow(key, player[0], player[1], scoreRelativeToPar, scoreTotal, player[4], week, year);
 
+    }
+
+    public void writeQueryToConsole(ArrayList<MapValue> results) {
+        System.out.println("Query Result:");
+        for (MapValue res : results) {
+            System.out.println("\t" + res);
+        }
+    }
+
+    public void writeQueryToTextFile(ArrayList<MapValue> results) {
+        String fileName = "results.txt";
+
+        try {
+            File printFile = new File(fileName);
+            if (printFile.createNewFile()) {
+                System.out.println("New file created "+printFile.getName());
+            } else {
+                System.out.println("This file already exists.");
+            }
+        } catch (IOException e) {
+            System.out.println("Error creating a file!");
+            e.printStackTrace();
+        }
+
+        try {
+            FileWriter fileWriter = new FileWriter(fileName);
+            fileWriter.write("Query Result: ");
+            for (MapValue res : results) {
+                fileWriter.write("\n" + res);
+            }
+            fileWriter.close();
+            System.out.println("Finished a successful write to the text file.");
+        } catch (IOException e) {
+            System.out.println("An error occurred trying to write to the file!");
+            e.printStackTrace();
+        }
     }
 
     // Currently unused, but this function can be used to quickly upload a lot of files - [INSERT]
