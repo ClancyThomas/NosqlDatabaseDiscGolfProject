@@ -39,7 +39,7 @@ public class CloudActions {
         System.out.println("Added row. Result: " + putRes);
     }
 
-    public ArrayList<MapValue> query(String sqlQuery, Boolean printToTextFile) {
+    public ArrayList<MapValue> query(String sqlQuery) {
         QueryRequest queryRequest = new QueryRequest()
                 .setStatement(sqlQuery);
         ArrayList<MapValue> results = new ArrayList<MapValue>();
