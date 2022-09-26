@@ -77,9 +77,10 @@ public class DataHandler {
 
     }
 
+    // Currently unused, but this function can be used to quickly upload a lot of files - [INSERT]
     public void uploadListOfCsvFiles(String[] fileNames) {
         for(int i = 0; i<fileNames.length; i++) {
-            uploadCsvFileToDatabase(fileNames[i], 1+"a", "Course Name", "1", "2022", "Format");
+            uploadCsvFileToDatabase(fileNames[i], i+"a", "Course Name", String.valueOf(i+1), "Year", "Format");
         }
     }
 }
