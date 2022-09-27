@@ -13,9 +13,10 @@ public class DataHandler {
     //
     // Description: Constructor for the DataHandler class
     // Parameters: 1. NoSQLHandle
+    //             2. Name of the table to work with
     //
-    public DataHandler(NoSQLHandle handle) {
-        databaseWorker = new CloudActions(handle);
+    public DataHandler(NoSQLHandle handle, String tableName) {
+        databaseWorker = new CloudActions(handle, tableName);
     }
 
     //
@@ -101,7 +102,7 @@ public class DataHandler {
             e.printStackTrace();
         }
 
-        databaseWorker.addRow(key, player[0], player[1], scoreRelativeToPar, scoreTotal, player[4], week, year);
+        databaseWorker.addRow(key, player[0], player[1], scoreRelativeToPar, scoreTotal, player[4], week, year, player[7]);
 
     }
 
@@ -111,12 +112,14 @@ public class DataHandler {
     //             2. Results Description will describe the data that was queried
     //
     public void writeQueryToConsole(ArrayList<MapValue> results, String resultsDescription) {
+        System.out.println("\n\n-------------------------------------------------");
         System.out.print(resultsDescription);
         for (MapValue res : results) {
             System.out.println();
             Map<String, FieldValue> map = res.getMap();
             map.forEach((key, value)-> System.out.print(value+","));
         }
+        System.out.println("\n-------------------------------------------------");
     }
 
     //
@@ -170,12 +173,11 @@ public class DataHandler {
         }
     }
 
-
     //
     // Description: Allows writeQueryToCsvFile but without a results description parameter
     // Parameters: 1. ArrayList<MapValue> Data type returned by a query to the Oracle NoSQL database
     //
-    public void writeQueryToCSVFile(ArrayList<MapValue> results) {
+    public void writeQueryToCsvFile(ArrayList<MapValue> results) {
         writeQueryToCsvFile(results, "Query Result: ");
     }
 

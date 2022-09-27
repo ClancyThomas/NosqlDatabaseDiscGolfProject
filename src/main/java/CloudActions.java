@@ -10,14 +10,16 @@ import java.util.ArrayList;
 public class CloudActions {
 
     NoSQLHandle myHandle;
-    private String tableName = "TetonRiverWeeklyStats"; // [INSERT] Specify table name here
+    private String tableName;
 
     //
     // Description: Constructor for the CloudActions class
     // Parameters: 1. NoSQLHandle
+    //             2. Name of the table to add rows to
     //
-    public CloudActions(NoSQLHandle handle) {
+    public CloudActions(NoSQLHandle handle, String table) {
         myHandle = handle;
+        tableName = table;
     }
 
     //
@@ -32,7 +34,7 @@ public class CloudActions {
     //             8. Year
     //
     public void addRow(String key, String firstName, String lastName, Integer scoreRelativeToPar,
-                       Integer scoreTotal, String course, Integer week, Integer year) {
+                       Integer scoreTotal, String course, Integer week, Integer year, String format) {
         MapValue row = new MapValue ()
                 .put("id", key)
                 .put("firstName", firstName)
@@ -42,8 +44,7 @@ public class CloudActions {
                 .put("course", course)
                 .put("week", week)
                 .put("year", year)
-
-                ;
+                .put("format", format);
 
         PutRequest putRequest = new PutRequest()
                 .setValue(row)
