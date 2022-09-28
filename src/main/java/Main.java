@@ -23,7 +23,7 @@ public class Main {
                         "4. Find the best score on each course for a player by name\n" +
                         "5. Get the weekly rankings of all players\n"+
                         "6. Exit the program\n" +
-                        "Enter a number (1-7): ");
+                        "Enter a number (1-6): ");
                 int option = Integer.parseInt(scanner.nextLine());
                 switch(option) {
                     case 1:
