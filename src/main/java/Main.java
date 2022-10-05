@@ -22,8 +22,9 @@ public class Main {
                         "3. Find the average scores on each course for a player by name  \n" +
                         "4. Find the best score on each course for a player by name\n" +
                         "5. Get the weekly rankings of all players\n"+
-                        "6. Exit the program\n" +
-                        "Enter a number (1-6): ");
+                        "6. Get the full rankings from all courses for all players\n" +
+                        "7. Exit the program\n" +
+                        "Enter a number (1-7): ");
                 int option = Integer.parseInt(scanner.nextLine());
                 switch(option) {
                     case 1:
@@ -106,6 +107,19 @@ public class Main {
                         }
                         break;
                     case 6:
+                        String querySix = "SELECT firstName, lastName, avg(scoreTotal), avg(scoreRelativeToPar)," +
+                                "count(scoreTotal), min(scoreRelativeToPar) FROM TetonRiverWeeklyStats " +
+                                "GROUP BY firstName, lastName ORDER BY avg(scoreRelativeToPar), firstName, lastName";
+                        String queryDescriptionSix = "First Name, Last Name, Average Score Relative to Par, Average Total Score, Best Score, Weeks Played";
+                        System.out.print("Print the results to the console (1) or to a .csv file (2): ");
+                        int printRequestSix = Integer.parseInt(scanner.nextLine());
+                        if (printRequestSix == 1) {
+                            dataHandler.writeQueryToConsole(databaseWorker.query(querySix), queryDescriptionSix);
+                        } else {
+                            dataHandler.writeQueryToCsvFile(databaseWorker.query(querySix), queryDescriptionSix);
+                        }
+                        break;
+                    case 7:
                         printMenu = false;
                         break;
                 }
