@@ -5,45 +5,29 @@ import oracle.nosql.driver.NoSQLHandleConfig;
 import oracle.nosql.driver.NoSQLHandleFactory;
 import oracle.nosql.driver.iam.SignatureProvider;
 
+import java.io.IOException;
+
 public class CloudConnection {
 
-    // Information used for connecting to the database and a specific compartment
-    private String endpoint = "us-phoenix-1"; // [INSERT] Add your region here
-    private String compartment = "practice";  // [INSERT] Specify which compartment to access
+    private String endpoint = "us-phoenix-1"; // Replace with your region
+    private String compartment = "practice";  // Replace with your compartment name
 
-    //
-    // Description: Gets the handle for the cloud database which is used for the interacting with database
-    //
     public NoSQLHandle getHandle() {
-
         NoSQLHandleConfig config = new NoSQLHandleConfig(endpoint);
         config.setDefaultCompartment(compartment);
         config.setRequestTimeout(10000);
         configureAuth(config);
-        NoSQLHandle handle = NoSQLHandleFactory.createNoSQLHandle(config);
-        return handle;
-
+        return NoSQLHandleFactory.createNoSQLHandle(config);
     }
 
-    //
-    // Description: Configures the authorization for the cloud database
-    // Parameters: 1. NoSQLHandleConfig - Created as part of the connection process
-    //
     private void configureAuth(NoSQLHandleConfig config) {
         try {
-            //
-            // Arguments for this come from file in $HOME/.oci/config file
-            // [INSERT] Configure/Create this file on your machine
-            // More Info: https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm
-            //
             SignatureProvider authProvider = new SignatureProvider();
             config.setAuthorizationProvider(authProvider);
-        } catch (IOException ioe) {
-            System.err.println("Error attempting to configure authentication: " +
-                    ioe);
+        } catch (IOException e) {
+            System.err.println("Error configuring authentication: " + e.getMessage());
             System.exit(1);
         }
     }
-
-
 }
+
