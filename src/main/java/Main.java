@@ -1,133 +1,123 @@
-import oracle.nosql.driver.NoSQLHandle;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
-import java.util.Scanner;
+import javafx.stage.Stage;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-public class Main {
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+public class Main extends Application {
+
+    private ArrayList<Map<String, String>> excelData;
+
+    @Override
+    public void start(Stage primaryStage) {
+        VBox layout = new VBox(10);
+        Label statusLabel = new Label("Welcome to Disc Golf Stat Pal!");
+
+        // Button to connect to the Excel file
+        Button connectButton = new Button("Connect to Database");
+        connectButton.setOnAction(e -> {
+            try {
+                String excelFilePath = "C:\\Users\\andxa\\DiscGolfQueryResults.xlsx";
+        
+                // Debug: Print current working directory
+                System.out.println("Current Working Directory: " + System.getProperty("user.dir"));
+        
+                // Check if file exists
+                File file = new File(excelFilePath);
+                if (!file.exists()) {
+                    statusLabel.setText("Error: Excel file not found at " + excelFilePath);
+                    return;
+                }
+        
+                // Load data from Excel file
+                excelData = readExcelFile(excelFilePath);
+                statusLabel.setText("Successfully connected to Excel sheet!");
+                System.out.println("Data loaded from Excel:");
+                excelData.forEach(System.out::println); // Print data to console
+            } catch (Exception ex) {
+                statusLabel.setText("Failed to connect to Excel sheet: " + ex.getMessage());
+            }
+        });
+        
+
+
+        // Button to upload a CSV file
+        Button uploadButton = new Button("Upload CSV File");
+        uploadButton.setOnAction(e -> {
+            statusLabel.setText("Upload functionality is currently disabled.");
+        });
+
+        // Button to execute a query and save results to a CSV
+        Button queryButton = new Button("Run Query");
+        queryButton.setOnAction(e -> {
+            if (excelData == null) {
+                statusLabel.setText("Connect to the Excel sheet first!");
+                return;
+            }
+            try {
+                System.out.println("Query Results:");
+                excelData.forEach(System.out::println); // Print query results to console
+                statusLabel.setText("Query executed. Results displayed in console.");
+            } catch (Exception ex) {
+                statusLabel.setText("Query execution failed: " + ex.getMessage());
+            }
+        });
+
+        // Add all components to the layout
+        layout.getChildren().addAll(statusLabel, connectButton, uploadButton, queryButton);
+
+        // Set up the scene and stage
+        Scene scene = new Scene(layout, 400, 300);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Disc Golf Stat Pal");
+        primaryStage.show();
+    }
+
+    // Method to read data from an Excel file
+    public ArrayList<Map<String, String>> readExcelFile(String filePath) throws IOException {
+        ArrayList<Map<String, String>> dataList = new ArrayList<>();
+    
+        try (FileInputStream fis = new FileInputStream(filePath);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+    
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<org.apache.poi.ss.usermodel.Row> rowIterator = sheet.iterator();
+    
+            // Get headers
+            org.apache.poi.ss.usermodel.Row headerRow = rowIterator.next();
+            ArrayList<String> headers = new ArrayList<>();
+            for (org.apache.poi.ss.usermodel.Cell cell : headerRow) {
+                headers.add(cell.getStringCellValue());
+            }
+    
+            // Get data rows
+            while (rowIterator.hasNext()) {
+                org.apache.poi.ss.usermodel.Row row = rowIterator.next();
+                Map<String, String> rowData = new HashMap<>();
+                for (int i = 0; i < headers.size(); i++) {
+                    org.apache.poi.ss.usermodel.Cell cell = row.getCell(i, org.apache.poi.ss.usermodel.Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    rowData.put(headers.get(i), cell.toString());
+                }
+                dataList.add(rowData);
+            }
+        }
+    
+        return dataList;
+    }
+    
 
     public static void main(String[] args) {
-        CloudConnection cloudConnection = new CloudConnection();
-        Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Welcome to the Disc Golf Stat Pal Program!");
-        System.out.print("Enter the name of the table in the database to work with: ");
-        String tableName = scanner.nextLine();
-
-        try (NoSQLHandle handle = cloudConnection.getHandle()) {
-            DataHandler dataHandler = new DataHandler(handle, tableName);
-            CloudActions databaseWorker = new CloudActions(handle, tableName);
-            Boolean printMenu = true;
-            while(printMenu) {
-                System.out.print("1. Upload a .csv file to the database \n" +
-                        "2. Find all rounds for a player by name \n" +
-                        "3. Find the average scores on each course for a player by name  \n" +
-                        "4. Find the best score on each course for a player by name\n" +
-                        "5. Get the weekly rankings of all players\n"+
-                        "6. Get the full rankings from all courses for all players\n" +
-                        "7. Exit the program\n" +
-                        "Enter a number (1-7): ");
-                int option = Integer.parseInt(scanner.nextLine());
-                switch(option) {
-                    case 1:
-                        System.out.print("Enter the file path to the .csv file: ");
-                        String filePath = scanner.nextLine();
-                        System.out.print("Enter the letter to use in the primary key: ");
-                        String keyLetter = scanner.nextLine();
-                        System.out.print("Enter the course name: ");
-                        String courseName = scanner.nextLine();
-                        System.out.print("Enter the week (1-52): ");
-                        String week = scanner.nextLine();
-                        System.out.print("Enter the year: ");
-                        String year = scanner.nextLine();
-                        System.out.print("Enter the format (singles/doubles): ");
-                        String format = scanner.nextLine();
-
-                        dataHandler.uploadCsvFileToDatabase(filePath, keyLetter, courseName, week, year, format);
-                        break;
-                    case 2:
-                        System.out.print("Enter the first name of the player: ");
-                        String firstNameTwo = scanner.nextLine();
-                        System.out.print("Enter the last name of the player: ");
-                        String lastNameTwo = scanner.nextLine();
-                        String queryTwo = "SELECT concat(firstName, \" \",lastName), scoreRelativeToPar, scoreTotal, " +
-                                 "course, format FROM " + tableName + " WHERE firstName=\"" + firstNameTwo + "\" AND lastName=\""+lastNameTwo+"\"";
-                        String queryDescriptionTwo = "Name, Score Relative to Par, Total Score, Course, Format";
-                        System.out.print("Print the results to the console (1) or to a .csv file (2): ");
-                        int printRequestTwo = Integer.parseInt(scanner.nextLine());
-                        if (printRequestTwo == 1) {
-                            dataHandler.writeQueryToConsole(databaseWorker.query(queryTwo), queryDescriptionTwo);
-                        } else {
-                            dataHandler.writeQueryToCsvFile(databaseWorker.query(queryTwo), queryDescriptionTwo);
-                        }
-                        break;
-                    case 3:
-                        System.out.print("Enter the first name of the player: ");
-                        String firstNameThree = scanner.nextLine();
-                        System.out.print("Enter the last name of the player: ");
-                        String lastNameThree = scanner.nextLine();
-                        String queryThree = "SELECT firstName, lastName, avg(scoreRelativeToPar)," +
-                                "course FROM " + tableName + " WHERE firstName=\"" + firstNameThree +
-                                "\" AND lastName=\""+lastNameThree+"\" GROUP BY firstName, lastName, course";
-                        String queryDescriptionThree = "First Name, Last Name, Course, Average Score Relative to Par";
-                        System.out.print("Print the results to the console (1) or to a .csv file (2): ");
-                        int printRequestThree = Integer.parseInt(scanner.nextLine());
-                        if (printRequestThree == 1) {
-                            dataHandler.writeQueryToConsole(databaseWorker.query(queryThree), queryDescriptionThree);
-                        } else {
-                            dataHandler.writeQueryToCsvFile(databaseWorker.query(queryThree), queryDescriptionThree);
-                        }
-                        break;
-                    case 4:
-                        System.out.print("Enter the first name of the player: ");
-                        String firstNameFour = scanner.nextLine();
-                        System.out.print("Enter the last name of the player: ");
-                        String lastNameFour = scanner.nextLine();
-                        String queryFour = "SELECT firstName, lastName, min(scoreRelativeToPar)," +
-                                "course FROM " + tableName + " WHERE firstName=\"" + firstNameFour +
-                                "\" AND lastName=\""+lastNameFour+"\" GROUP BY firstName, lastName, course";
-                        String queryDescriptionFour = "First Name, Last Name, Course, Best Score Relative to Par";
-                        System.out.print("Print the results to the console (1) or to a .csv file (2): ");
-                        int printRequestFour = Integer.parseInt(scanner.nextLine());
-                        if (printRequestFour == 1) {
-                            dataHandler.writeQueryToConsole(databaseWorker.query(queryFour), queryDescriptionFour);
-                        } else {
-                            dataHandler.writeQueryToCsvFile(databaseWorker.query(queryFour), queryDescriptionFour);
-                        }
-                        break;
-                    case 5:
-                        String queryFive = "SELECT firstName, lastName, avg(scoreTotal), avg(scoreRelativeToPar)," +
-                            "count(scoreTotal), min(scoreRelativeToPar) FROM TetonRiverWeeklyStats WHERE course = \"Nature Park\" " +
-                            "GROUP BY firstName, lastName ORDER BY avg(scoreRelativeToPar), firstName, lastName";
-                        String queryDescriptionFive = "First Name, Last Name, Average Score Relative to Par, Average Total Score, Best Score, Weeks Played";
-                        System.out.print("Print the results to the console (1) or to a .csv file (2): ");
-                        int printRequestFive = Integer.parseInt(scanner.nextLine());
-                        if (printRequestFive == 1) {
-                            dataHandler.writeQueryToConsole(databaseWorker.query(queryFive), queryDescriptionFive);
-                        } else {
-                            dataHandler.writeQueryToCsvFile(databaseWorker.query(queryFive), queryDescriptionFive);
-                        }
-                        break;
-                    case 6:
-                        String querySix = "SELECT firstName, lastName, avg(scoreTotal), avg(scoreRelativeToPar)," +
-                                "count(scoreTotal), min(scoreRelativeToPar) FROM TetonRiverWeeklyStats " +
-                                "GROUP BY firstName, lastName ORDER BY avg(scoreRelativeToPar), firstName, lastName";
-                        String queryDescriptionSix = "First Name, Last Name, Average Score Relative to Par, Average Total Score, Best Score, Weeks Played";
-                        System.out.print("Print the results to the console (1) or to a .csv file (2): ");
-                        int printRequestSix = Integer.parseInt(scanner.nextLine());
-                        if (printRequestSix == 1) {
-                            dataHandler.writeQueryToConsole(databaseWorker.query(querySix), queryDescriptionSix);
-                        } else {
-                            dataHandler.writeQueryToCsvFile(databaseWorker.query(querySix), queryDescriptionSix);
-                        }
-                        break;
-                    case 7:
-                        printMenu = false;
-                        break;
-                }
-
-            }
-        } catch (Exception e) {
-            System.err.println("Error with the database: "+e);
-        }
-
+        launch(args);
     }
 }
